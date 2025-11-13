@@ -1,9 +1,15 @@
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold text-primary-600">SOS Comida</h1>
-      <p className="mt-4 text-xl">Plataforma de doações e campanhas solidárias</p>
-      <p className="mt-2 text-sm text-gray-600">Next.js 14 + TypeScript ✅</p>
-    </div>
+    <main style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+        SOS Comida
+      </h1>
+      <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+        Plataforma de doações e campanhas solidárias
+      </p>
+      <p style={{ fontSize: '0.9rem', color: '#666' }}>
+        Next.js 14 + TypeScript funcionando! ✅
+      </p>
+    </main>
   );
 }
