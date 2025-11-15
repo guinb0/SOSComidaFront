@@ -44,16 +44,28 @@ export interface Setup2FAResponse {
 export const authService = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/auth/login', data);
+    // Salvar refresh token se fornecido
+    if (response.data.refreshToken && typeof window !== 'undefined') {
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+    }
     return response.data;
   },
 
   registerUsuario: async (data: RegisterUsuarioRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/auth/register/usuario', data);
+    // Salvar refresh token se fornecido
+    if (response.data.refreshToken && typeof window !== 'undefined') {
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+    }
     return response.data;
   },
 
   registerInstituicao: async (data: RegisterInstituicaoRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/auth/register/instituicao', data);
+    // Salvar refresh token se fornecido
+    if (response.data.refreshToken && typeof window !== 'undefined') {
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+    }
     return response.data;
   },
 
@@ -61,6 +73,7 @@ export const authService = {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('refreshToken');
     }
   },
 
