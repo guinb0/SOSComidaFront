@@ -8,7 +8,7 @@ export default function Home() {
         Plataforma de doações e campanhas solidárias
       </p>
       <p style={{ fontSize: '0.9rem', color: '#666' }}>
-        Next.js 14 + TypeScript funcionando! ✅
+        Next.js 14 + TypeScript funcionando! 
       </p>
     </main>
   );
