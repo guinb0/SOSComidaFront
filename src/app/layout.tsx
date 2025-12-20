@@ -1,5 +1,7 @@
 import React from 'react';
-import '../styles/globals.css';
+import { QueryProvider } from '@/lib/providers/query-provider';
+import { ThemeProvider } from '@/lib/providers/theme-provider';
+import './globals.css';
 
 export const metadata = {
   title: 'SOS Comida',
@@ -8,10 +10,14 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head />
       <body>
-        {children}
+        <QueryProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import apiClient from '../client';
-import { Campanha, VoluntarioCampanha, DenunciaVoluntario } from '@/types';
+import { Campanha, CampanhaDto, VoluntarioCampanha, DenunciaVoluntario } from '@/types';
 
 export interface CreateCampanhaRequest {
   titulo: string;
@@ -18,9 +18,14 @@ export interface DenunciarVoluntarioRequest {
 }
 
 export const campanhaService = {
-  getAll: async (status?: string): Promise<Campanha[]> => {
+  getAll: async (status?: string): Promise<{ data: CampanhaDto[]; total: number }> => {
     const params = status ? { status } : {};
-    const response = await apiClient.get<Campanha[]>('/campanhas', { params });
+    const response = await apiClient.get<{ data: CampanhaDto[]; total: number }>('/api/campanhas', { params });
+    return response.data;
+  },
+
+  getPrincipais: async (): Promise<{ data: CampanhaDto[] }> => {
+    const response = await apiClient.get<{ data: CampanhaDto[] }>('/api/campanhas/principais');
     return response.data;
   },
 

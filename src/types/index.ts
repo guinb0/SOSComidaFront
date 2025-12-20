@@ -1,4 +1,4 @@
-export type TipoUsuario = 'usuario' | 'instituicao' | 'moderador';
+export type TipoUsuario = 'usuario' | 'instituicao' | 'moderador' | 'admin';
 export type StatusAprovacao = 'pendente' | 'aprovada' | 'rejeitada';
 export type StatusCampanha = 'pendente' | 'ativa' | 'suspensa' | 'concluida';
 export type StatusSolicitacao = 'pendente' | 'aprovada' | 'rejeitada' | 'delegada' | 'aceita' | 'entregue';
@@ -45,6 +45,22 @@ export interface Campanha {
   instituicaoDelegada?: Usuario;
   numVoluntarios?: number;
   progresso?: number;
+}
+
+// DTO para campanhas vindas do backend
+export interface CampanhaDto {
+  id: number;
+  titulo: string;
+  descricao: string;
+  imagemUrl: string;
+  localizacao: string;
+  metaArrecadacao: number;
+  valorArrecadado: number;
+  progresso: number;
+  dataInicio: string;
+  dataFim: string;
+  status: string;
+  ativa: boolean;
 }
 
 export interface SolicitacaoRecebimento {
@@ -144,4 +160,45 @@ export interface LogAcaoModerador {
   dataAcao: string;
   detalhes?: string;
   ipAddress?: string;
+}
+
+export interface ParticipanteCampanha {
+  id: number;
+  usuarioId: number;
+  nome: string;
+  email: string;
+  telefone?: string;
+  tipo: string;
+  status: string;
+  dataEntrada: string;
+  dataSaida?: string;
+  motivoSaida?: string;
+}
+
+export interface MensagemChat {
+  id: number;
+  campanhaId: number;
+  usuarioId: number;
+  nomeUsuario: string;
+  conteudo: string;
+  dataEnvio: string;
+  dataEdicao?: string;
+  fixada: boolean;
+  fixadaPorNome?: string;
+}
+
+export interface AvisoCampanha {
+  id: number;
+  campanhaId: number;
+  tituloCampanha?: string;
+  moderadorId: number;
+  nomeModerador: string;
+  destinatarioId?: number;
+  nomeDestinatario?: string;
+  titulo: string;
+  mensagem: string;
+  tipo: 'informativo' | 'advertencia' | 'urgente';
+  dataEnvio: string;
+  lido: boolean;
+  dataLeitura?: string;
 }

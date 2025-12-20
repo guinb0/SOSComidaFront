@@ -12,6 +12,7 @@ export interface LoginResponse {
   refreshToken?: string;
   usuario: Usuario;
   requires2FA?: boolean;
+  senhaTemporaria?: boolean;
 }
 
 export interface RegisterUsuarioRequest {
