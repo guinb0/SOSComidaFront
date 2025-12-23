@@ -14,8 +14,20 @@ import {
   Phone,
   MapPin,
   Calendar,
-  History
+  History,
+  Map,
+  Plus,
+  X,
+  Check
 } from 'lucide-react';
+
+interface Regiao {
+  id: number;
+  nome: string;
+  sigla: string;
+  estado?: string;
+  cidade?: string;
+}
 
 interface Moderador {
   id: number;
@@ -26,20 +38,32 @@ interface Moderador {
   tipo: 'super-moderador' | 'moderador';
   criadoEm: string;
   ativo: boolean;
+  regioes?: Regiao[];
 }
 
 export default function ModeradoresPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [moderadores, setModeradores] = useState<Moderador[]>([]);
+  const [regioes, setRegioes] = useState<Regiao[]>([]);
   const [busca, setBusca] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalRegioes, setMostrarModalRegioes] = useState(false);
+  const [mostrarModalNovaRegiao, setMostrarModalNovaRegiao] = useState(false);
+  const [moderadorSelecionado, setModeradorSelecionado] = useState<Moderador | null>(null);
+  const [regioesSelecionadas, setRegioesSelecionadas] = useState<number[]>([]);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     senha: '',
     telefone: '',
+    cidade: ''
+  });
+  const [novaRegiao, setNovaRegiao] = useState({
+    nome: '',
+    sigla: '',
+    estado: '',
     cidade: ''
   });
 
@@ -57,43 +81,73 @@ export default function ModeradoresPage() {
     }
 
     carregarModeradores();
+    carregarRegioes();
   }, [user, router]);
 
-  const carregarModeradores = () => {
-    // Mock data - em produção virá da API
-    const mockModeradores: Moderador[] = [
-      {
-        id: 1,
-        nome: 'Guilherme Nobrega',
-        email: 'guinb@soscomida.com',
-        telefone: '(11) 98765-4321',
-        cidade: 'São Paulo',
-        tipo: 'super-moderador',
-        criadoEm: '2024-01-01T00:00:00',
-        ativo: true
-      },
-      {
-        id: 2,
-        nome: 'Ana Paula Silva',
-        email: 'ana.moderadora@soscomida.com',
-        telefone: '(21) 99876-5432',
-        cidade: 'Rio de Janeiro',
-        tipo: 'moderador',
-        criadoEm: '2024-11-15T10:30:00',
-        ativo: true
-      },
-      {
-        id: 3,
-        nome: 'Carlos Santos',
-        email: 'carlos.mod@soscomida.com',
-        telefone: '(31) 98765-1234',
-        cidade: 'Belo Horizonte',
-        tipo: 'moderador',
-        criadoEm: '2024-12-01T14:20:00',
-        ativo: true
+  const carregarRegioes = async () => {
+    try {
+      const response = await fetch('http://localhost:5118/api/regioes');
+      if (response.ok) {
+        const data = await response.json();
+        setRegioes(data);
       }
-    ];
-    setModeradores(mockModeradores);
+    } catch (error) {
+      console.error('Erro ao carregar regiões:', error);
+    }
+  };
+
+  const carregarRegioesDoModerador = async (moderadorId: number) => {
+    try {
+      const response = await fetch(`http://localhost:5118/api/regioes/moderador/${moderadorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.map((r: Regiao) => r.id);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar regiões do moderador:', error);
+    }
+    return [];
+  };
+
+  const carregarModeradores = async () => {
+    try {
+      // Buscar moderadores da API
+      const response = await fetch('http://localhost:5118/api/usuarios?tipo=moderador');
+      if (response.ok) {
+        const result = await response.json();
+        const moderadoresApi = result.data.map((u: any) => ({
+          id: u.id,
+          nome: u.nome,
+          email: u.email,
+          telefone: u.telefone || '',
+          cidade: u.cidade || '',
+          tipo: u.tipo === 'admin' ? 'super-moderador' : 'moderador',
+          criadoEm: u.dataCriacao,
+          ativo: true
+        }));
+        
+        // Também buscar admins
+        const responseAdmin = await fetch('http://localhost:5118/api/usuarios?tipo=admin');
+        if (responseAdmin.ok) {
+          const resultAdmin = await responseAdmin.json();
+          const admins = resultAdmin.data.map((u: any) => ({
+            id: u.id,
+            nome: u.nome,
+            email: u.email,
+            telefone: u.telefone || '',
+            cidade: u.cidade || '',
+            tipo: 'super-moderador',
+            criadoEm: u.dataCriacao,
+            ativo: true
+          }));
+          setModeradores([...admins, ...moderadoresApi]);
+        } else {
+          setModeradores(moderadoresApi);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar moderadores:', error);
+    }
   };
 
   const abrirModal = (moderador?: Moderador) => {
@@ -129,6 +183,72 @@ export default function ModeradoresPage() {
       telefone: '',
       cidade: ''
     });
+  };
+
+  const abrirModalRegioes = async (moderador: Moderador) => {
+    setModeradorSelecionado(moderador);
+    const regioesIds = await carregarRegioesDoModerador(moderador.id);
+    setRegioesSelecionadas(regioesIds);
+    setMostrarModalRegioes(true);
+  };
+
+  const salvarRegioes = async () => {
+    if (!moderadorSelecionado) return;
+
+    try {
+      const response = await fetch(`http://localhost:5118/api/regioes/moderador/${moderadorSelecionado.id}/atribuir`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regioesIds: regioesSelecionadas })
+      });
+
+      if (response.ok) {
+        alert('Regiões atribuídas com sucesso!');
+        setMostrarModalRegioes(false);
+        carregarModeradores();
+      } else {
+        alert('Erro ao atribuir regiões');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar regiões:', error);
+      alert('Erro ao atribuir regiões');
+    }
+  };
+
+  const criarNovaRegiao = async () => {
+    if (!novaRegiao.nome || !novaRegiao.sigla) {
+      alert('Nome e sigla são obrigatórios!');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5118/api/regioes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novaRegiao)
+      });
+
+      if (response.ok) {
+        alert('Região criada com sucesso!');
+        setMostrarModalNovaRegiao(false);
+        setNovaRegiao({ nome: '', sigla: '', estado: '', cidade: '' });
+        carregarRegioes();
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Erro ao criar região');
+      }
+    } catch (error) {
+      console.error('Erro ao criar região:', error);
+      alert('Erro ao criar região');
+    }
+  };
+
+  const toggleRegiao = (regiaoId: number) => {
+    setRegioesSelecionadas(prev =>
+      prev.includes(regiaoId)
+        ? prev.filter(id => id !== regiaoId)
+        : [...prev, regiaoId]
+    );
   };
 
   const salvarModerador = () => {
@@ -193,43 +313,43 @@ export default function ModeradoresPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-16 lg:pt-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <Shield className="text-amber-500" size={32} />
-              <h1 className="text-3xl font-bold text-white">Gerenciar Moderadores</h1>
+              <Shield className="text-amber-600" size={32} />
+              <h1 className="text-3xl font-bold text-slate-900">Gerenciar Moderadores</h1>
             </div>
-            <p className="text-slate-400">
+            <p className="text-slate-600">
               Crie e gerencie moderadores da plataforma
             </p>
           </div>
 
           {/* Estatísticas */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-slate-400 text-sm mb-1">Total de Moderadores</div>
-              <div className="text-2xl font-bold text-white">{moderadores.length}</div>
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+              <div className="text-slate-600 text-sm mb-1">Total de Moderadores</div>
+              <div className="text-2xl font-bold text-slate-900">{moderadores.length}</div>
             </div>
-            <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-800">
-              <div className="text-emerald-400 text-sm mb-1">Ativos</div>
-              <div className="text-2xl font-bold text-emerald-500">
+            <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+              <div className="text-emerald-700 text-sm mb-1">Ativos</div>
+              <div className="text-2xl font-bold text-emerald-600">
                 {moderadores.filter(m => m.ativo).length}
               </div>
             </div>
-            <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-800">
-              <div className="text-amber-400 text-sm mb-1">Moderadores Comuns</div>
-              <div className="text-2xl font-bold text-amber-500">
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+              <div className="text-amber-700 text-sm mb-1">Moderadores Comuns</div>
+              <div className="text-2xl font-bold text-amber-600">
                 {moderadores.filter(m => m.tipo === 'moderador').length}
               </div>
             </div>
           </div>
 
           {/* Barra de Ação */}
-          <div className="bg-slate-800/50 rounded-lg p-4 mb-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-4 mb-6 border border-slate-200 shadow-sm">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Busca */}
               <div className="flex-1 relative">
@@ -239,7 +359,7 @@ export default function ModeradoresPage() {
                   placeholder="Buscar por nome, email ou cidade..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  className="w-full bg-slate-900 text-white pl-10 pr-4 py-2 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-50 text-slate-900 pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -266,20 +386,20 @@ export default function ModeradoresPage() {
           {/* Lista de Moderadores */}
           <div className="space-y-4">
             {moderadoresFiltrados.length === 0 ? (
-              <div className="text-center py-12 bg-slate-800/50 rounded-lg border border-slate-700">
-                <p className="text-slate-400">Nenhum moderador encontrado</p>
+              <div className="text-center py-12 bg-white rounded-lg border border-slate-200 shadow-sm">
+                <p className="text-slate-600">Nenhum moderador encontrado</p>
               </div>
             ) : (
               moderadoresFiltrados.map((moderador) => (
                 <div
                   key={moderador.id}
-                  className="bg-slate-800/50 rounded-lg border border-slate-700 p-6"
+                  className="bg-white rounded-lg border border-slate-200 shadow-sm p-6"
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white">{moderador.nome}</h3>
+                        <h3 className="text-xl font-bold text-slate-900">{moderador.nome}</h3>
                         {moderador.tipo === 'super-moderador' && (
                           <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs px-3 py-1 rounded-full font-bold">
                             SUPER MODERADOR
@@ -287,23 +407,23 @@ export default function ModeradoresPage() {
                         )}
                         <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                           moderador.ativo
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-red-500/20 text-red-400'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-red-100 text-red-700'
                         }`}>
                           {moderador.ativo ? 'Ativo' : 'Inativo'}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-slate-600">
                           <Mail size={16} />
                           {moderador.email}
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-slate-600">
                           <Phone size={16} />
                           {moderador.telefone}
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-slate-600">
                           <MapPin size={16} />
                           {moderador.cidade}
                         </div>
@@ -317,7 +437,15 @@ export default function ModeradoresPage() {
 
                     {/* Ações */}
                     {moderador.tipo !== 'super-moderador' && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => abrirModalRegioes(moderador)}
+                          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <Map size={16} />
+                          Regiões
+                        </button>
+
                         <button
                           onClick={() => abrirModal(moderador)}
                           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -356,34 +484,34 @@ export default function ModeradoresPage() {
       {/* Modal de Criar/Editar */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-lg max-w-md w-full p-6 border border-slate-700">
-            <h2 className="text-2xl font-bold text-white mb-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 border border-slate-200 shadow-xl">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
               {editandoId ? 'Editar Moderador' : 'Novo Moderador'}
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Nome *</label>
+                <label className="block text-sm text-slate-700 mb-2">Nome *</label>
                 <input
                   type="text"
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Email *</label>
+                <label className="block text-sm text-slate-700 mb-2">Email *</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">
+                <label className="block text-sm text-slate-700 mb-2">
                   Senha {!editandoId && '*'}
                 </label>
                 <input
@@ -391,27 +519,27 @@ export default function ModeradoresPage() {
                   value={formData.senha}
                   onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                   placeholder={editandoId ? 'Deixe em branco para não alterar' : ''}
-                  className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Telefone</label>
+                <label className="block text-sm text-slate-700 mb-2">Telefone</label>
                 <input
                   type="tel"
                   value={formData.telefone}
                   onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                  className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Cidade</label>
+                <label className="block text-sm text-slate-700 mb-2">Cidade</label>
                 <input
                   type="text"
                   value={formData.cidade}
                   onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
-                  className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -425,7 +553,161 @@ export default function ModeradoresPage() {
               </button>
               <button
                 onClick={fecharModal}
-                className="px-6 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg transition-colors"
+                className="px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Atribuir Regiões */}
+      {mostrarModalRegioes && moderadorSelecionado && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 border border-slate-200 shadow-xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-slate-900">
+                Regiões de {moderadorSelecionado.nome}
+              </h2>
+              <button
+                onClick={() => setMostrarModalRegioes(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <p className="text-slate-600 mb-4 text-sm">
+              Selecione as regiões administrativas que este moderador poderá gerenciar.
+            </p>
+
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setMostrarModalNovaRegiao(true)}
+                className="flex items-center gap-2 text-purple-600 hover:text-purple-700 text-sm font-medium"
+              >
+                <Plus size={16} />
+                Criar Nova Região
+              </button>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              {regioes.length === 0 ? (
+                <p className="text-slate-500 text-center py-4">
+                  Nenhuma região cadastrada. Crie uma nova região primeiro.
+                </p>
+              ) : (
+                regioes.map((regiao) => (
+                  <div
+                    key={regiao.id}
+                    onClick={() => toggleRegiao(regiao.id)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                      regioesSelecionadas.includes(regiao.id)
+                        ? 'bg-purple-50 border-purple-300'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded flex items-center justify-center ${
+                      regioesSelecionadas.includes(regiao.id)
+                        ? 'bg-purple-600'
+                        : 'bg-white border border-slate-300'
+                    }`}>
+                      {regioesSelecionadas.includes(regiao.id) && (
+                        <Check size={14} className="text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-slate-900">{regiao.nome}</div>
+                      <div className="text-xs text-slate-500">
+                        {regiao.sigla} • {regiao.cidade || regiao.estado || 'Sem localização'}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={salvarRegioes}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Salvar Regiões
+              </button>
+              <button
+                onClick={() => setMostrarModalRegioes(false)}
+                className="px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Nova Região */}
+      {mostrarModalNovaRegiao && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 border border-slate-200 shadow-xl">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Nova Região Administrativa</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-700 mb-2">Nome *</label>
+                <input
+                  type="text"
+                  value={novaRegiao.nome}
+                  onChange={(e) => setNovaRegiao({ ...novaRegiao, nome: e.target.value })}
+                  placeholder="Ex: Asa Norte"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-700 mb-2">Sigla *</label>
+                <input
+                  type="text"
+                  value={novaRegiao.sigla}
+                  onChange={(e) => setNovaRegiao({ ...novaRegiao, sigla: e.target.value.toUpperCase() })}
+                  placeholder="Ex: DF-ASA-N"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-700 mb-2">Estado</label>
+                <input
+                  type="text"
+                  value={novaRegiao.estado}
+                  onChange={(e) => setNovaRegiao({ ...novaRegiao, estado: e.target.value })}
+                  placeholder="Ex: Distrito Federal"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-700 mb-2">Cidade</label>
+                <input
+                  type="text"
+                  value={novaRegiao.cidade}
+                  onChange={(e) => setNovaRegiao({ ...novaRegiao, cidade: e.target.value })}
+                  placeholder="Ex: Brasília"
+                  className="w-full bg-slate-50 text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={criarNovaRegiao}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Criar Região
+              </button>
+              <button
+                onClick={() => setMostrarModalNovaRegiao(false)}
+                className="px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 rounded-lg transition-colors"
               >
                 Cancelar
               </button>

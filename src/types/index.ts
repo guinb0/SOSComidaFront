@@ -12,7 +12,7 @@ export interface Usuario {
   cidade?: string;
   endereco?: string;
   cpf?: string;
-  fotoPerfil?: string;
+  fotoUrl?: string;
   bio?: string;
   twoFactorEnabled: boolean;
   govBrLinked: boolean;
@@ -53,6 +53,7 @@ export interface CampanhaDto {
   titulo: string;
   descricao: string;
   imagemUrl: string;
+  imagens?: string[];
   localizacao: string;
   metaArrecadacao: number;
   valorArrecadado: number;

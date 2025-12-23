@@ -6,10 +6,11 @@ import { useAuthStore } from '@/store/auth-store';
 import { Sidebar } from '@/components/Sidebar';
 import { campanhaService } from '@/lib/api/services/campanha.service';
 import type { CampanhaDto } from '@/types';
-import { MapPin, Heart, HandHeart } from 'lucide-react';
+import { MapPin, Heart, HandHeart, PlusCircle, Settings } from 'lucide-react';
 
 export default function CampanhasPage() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isModerador = user?.tipo === 'moderador' || user?.tipo === 'admin';
   const router = useRouter();
   const [campanhas, setCampanhas] = useState<CampanhaDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,18 +46,27 @@ export default function CampanhasPage() {
       <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-16 lg:pt-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-3">
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl">
-                <Heart className="text-white" size={28} />
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-3">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl">
+                  <Heart className="text-white" size={28} />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Campanhas Solidárias
+                  </h1>
+                  <p className="text-slate-400 mt-1">
+                    Explore todas as campanhas ativas e faça a diferença na vida de alguém
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Campanhas Solidárias
-                </h1>
-                <p className="text-slate-400 mt-1">
-                  Explore todas as campanhas ativas e faça a diferença na vida de alguém
-                </p>
-              </div>
+              <button
+                onClick={() => router.push('/campanhas/nova')}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105"
+              >
+                <PlusCircle size={20} />
+                <span>Solicitar Campanha</span>
+              </button>
             </div>
           </div>
 
@@ -117,39 +127,54 @@ export default function CampanhasPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/campanhas/${campanha.id}`);
-                          }}
-                          className="w-full py-2 px-4 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg font-semibold hover:bg-slate-700 transition-all"
-                        >
-                          Ver Detalhes
-                        </button>
-                        
-                        <div className="grid grid-cols-2 gap-2">
+                        {isModerador ? (
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/campanhas/${campanha.id}/doar`);
+                              router.push(`/campanhas/${campanha.id}`);
                             }}
-                            className="py-2 px-3 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-blue-600 transition-all flex items-center justify-center gap-2 text-sm"
+                            className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2"
                           >
-                            <Heart size={16} />
-                            Doar
+                            <Settings size={16} />
+                            Gerenciar
                           </button>
-                          
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/campanhas/${campanha.id}/voluntario`);
-                            }}
-                            className="py-2 px-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2 text-sm"
-                          >
-                            <HandHeart size={16} />
-                            Voluntário
-                          </button>
-                        </div>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/campanhas/${campanha.id}`);
+                              }}
+                              className="w-full py-2 px-4 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg font-semibold hover:bg-slate-700 transition-all"
+                            >
+                              Ver Detalhes
+                            </button>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/campanhas/${campanha.id}/doar`);
+                                }}
+                                className="py-2 px-3 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-blue-600 transition-all flex items-center justify-center gap-2 text-sm"
+                              >
+                                <Heart size={16} />
+                                Doar
+                              </button>
+                              
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/campanhas/${campanha.id}/voluntario`);
+                                }}
+                                className="py-2 px-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2 text-sm"
+                              >
+                                <HandHeart size={16} />
+                                Voluntário
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -5,9 +5,11 @@ export interface CreateCampanhaDto {
   titulo: string;
   descricao: string;
   imagemUrl?: string;
+  imagens?: string[];
   metaArrecadacao: number;
   dataInicio: string;
   dataFim: string;
+  regiaoId?: number | null;
 }
 
 export interface UpdateCampanhaDto extends CreateCampanhaDto {

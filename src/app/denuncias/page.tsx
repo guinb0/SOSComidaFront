@@ -152,8 +152,9 @@ export default function DenunciasPage() {
       return;
     }
 
-    if (user.email !== 'guinb@soscomida.com') {
-      alert('Acesso negado. Apenas administradores podem acessar esta página.');
+    const isAdminOrModerador = user.tipo === 'admin' || user.tipo === 'moderador';
+    if (!isAdminOrModerador) {
+      alert('Acesso negado. Apenas administradores e moderadores podem acessar esta página.');
       router.push('/inicio');
       return;
     }
@@ -183,10 +184,10 @@ export default function DenunciasPage() {
 
   const getStatusColor = (status: StatusDenuncia): string => {
     const colors: Record<StatusDenuncia, string> = {
-      pendente: 'bg-yellow-900/30 text-yellow-500 border-yellow-700',
-      analisando: 'bg-blue-900/30 text-blue-500 border-blue-700',
-      procedente: 'bg-red-900/30 text-red-500 border-red-700',
-      improcedente: 'bg-green-900/30 text-green-500 border-green-700',
+      pendente: 'bg-amber-100 text-amber-700 border-amber-300',
+      analisando: 'bg-blue-100 text-blue-700 border-blue-300',
+      procedente: 'bg-red-100 text-red-700 border-red-300',
+      improcedente: 'bg-emerald-100 text-emerald-700 border-emerald-300',
     };
     return colors[status];
   };
@@ -261,12 +262,13 @@ export default function DenunciasPage() {
     improcedentes: denuncias.filter(d => d.status === 'improcedente').length,
   };
 
-  if (!user || user.email !== 'guinb@soscomida.com') {
+  const isAdminOrModerador = user?.tipo === 'admin' || user?.tipo === 'moderador';
+  if (!user || !isAdminOrModerador) {
     return null;
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
+    <div className="flex min-h-screen theme-bg-primary">
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-16 lg:pt-8">
         <div className="max-w-7xl mx-auto">
@@ -274,7 +276,7 @@ export default function DenunciasPage() {
           <div className="mb-8">
             <button
               onClick={() => router.push('/moderacao')}
-              className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors"
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-700 mb-4 transition-colors"
             >
               <ArrowLeft size={20} />
               Voltar para Moderação
@@ -282,43 +284,43 @@ export default function DenunciasPage() {
             
             <div className="flex items-center gap-3 mb-2">
               <Flag className="text-red-500" size={32} />
-              <h1 className="text-3xl font-bold text-white">Denúncias</h1>
+              <h1 className="text-3xl font-bold theme-text-primary">Denúncias</h1>
             </div>
-            <p className="text-slate-400">
+            <p className="theme-text-secondary">
               Revise e analise as denúncias de campanhas reportadas pelos usuários
             </p>
           </div>
 
           {/* Estatísticas */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-slate-400 text-sm mb-1">Total</div>
-              <div className="text-2xl font-bold text-white">{estatisticas.total}</div>
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+              <div className="text-slate-500 text-sm mb-1">Total</div>
+              <div className="text-2xl font-bold text-slate-800">{estatisticas.total}</div>
             </div>
-            <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-800">
-              <div className="text-yellow-400 text-sm mb-1">Pendentes</div>
-              <div className="text-2xl font-bold text-yellow-500">{estatisticas.pendentes}</div>
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+              <div className="text-amber-600 text-sm mb-1">Pendentes</div>
+              <div className="text-2xl font-bold text-amber-600">{estatisticas.pendentes}</div>
             </div>
-            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-800">
-              <div className="text-blue-400 text-sm mb-1">Em Análise</div>
-              <div className="text-2xl font-bold text-blue-500">{estatisticas.analisando}</div>
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="text-blue-600 text-sm mb-1">Em Análise</div>
+              <div className="text-2xl font-bold text-blue-600">{estatisticas.analisando}</div>
             </div>
-            <div className="bg-red-900/20 rounded-lg p-4 border border-red-800">
-              <div className="text-red-400 text-sm mb-1">Procedentes</div>
-              <div className="text-2xl font-bold text-red-500">{estatisticas.procedentes}</div>
+            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+              <div className="text-red-600 text-sm mb-1">Procedentes</div>
+              <div className="text-2xl font-bold text-red-600">{estatisticas.procedentes}</div>
             </div>
-            <div className="bg-green-900/20 rounded-lg p-4 border border-green-800">
-              <div className="text-green-400 text-sm mb-1">Improcedentes</div>
-              <div className="text-2xl font-bold text-green-500">{estatisticas.improcedentes}</div>
+            <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+              <div className="text-emerald-600 text-sm mb-1">Improcedentes</div>
+              <div className="text-2xl font-bold text-emerald-600">{estatisticas.improcedentes}</div>
             </div>
           </div>
 
           {/* Filtros */}
-          <div className="bg-slate-800/50 rounded-lg p-4 mb-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-4 mb-6 border border-slate-200 shadow-sm">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex items-center gap-2">
-                <Filter size={18} className="text-slate-400" />
-                <span className="text-slate-400 text-sm">Filtros:</span>
+                <Filter size={18} className="text-slate-500" />
+                <span className="text-slate-500 text-sm">Filtros:</span>
               </div>
               
               {/* Filtro por Status */}
@@ -329,8 +331,8 @@ export default function DenunciasPage() {
                     onClick={() => setFiltroStatus(status)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       filtroStatus === status
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     {status === 'todas' ? 'Todos Status' : getStatusLabel(status)}
@@ -346,8 +348,8 @@ export default function DenunciasPage() {
                     onClick={() => setFiltroTipo(tipo)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       filtroTipo === tipo
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     {tipo === 'todos' ? 'Todos Tipos' : getTipoLabel(tipo)}
@@ -360,15 +362,15 @@ export default function DenunciasPage() {
           {/* Lista de Denúncias */}
           <div className="space-y-4">
             {denunciasFiltradas.length === 0 ? (
-              <div className="bg-slate-800/50 rounded-lg p-8 border border-slate-700 text-center">
-                <Flag size={48} className="text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">Nenhuma denúncia encontrada com os filtros selecionados.</p>
+              <div className="bg-white rounded-lg p-8 border border-slate-200 shadow-sm text-center">
+                <Flag size={48} className="text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">Nenhuma denúncia encontrada com os filtros selecionados.</p>
               </div>
             ) : (
               denunciasFiltradas.map((denuncia) => (
                 <div
                   key={denuncia.id}
-                  className="bg-slate-800/50 rounded-lg border border-slate-700 overflow-hidden"
+                  className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden"
                 >
                   <div className="p-4">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -384,11 +386,11 @@ export default function DenunciasPage() {
                           </span>
                         </div>
                         
-                        <h3 className="text-lg font-semibold text-white mb-1">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-1">
                           Campanha: {denuncia.campanhaTitulo}
                         </h3>
                         
-                        <p className="text-slate-300 text-sm mb-3 line-clamp-2">
+                        <p className="text-slate-600 text-sm mb-3 line-clamp-2">
                           {denuncia.descricao}
                         </p>
 
@@ -402,7 +404,7 @@ export default function DenunciasPage() {
                             {new Date(denuncia.dataDenuncia).toLocaleDateString('pt-BR')}
                           </span>
                           {denuncia.moderadorNome && (
-                            <span className="flex items-center gap-1 text-purple-400">
+                            <span className="flex items-center gap-1 text-emerald-600">
                               <ShieldCheck size={12} />
                               Moderador: {denuncia.moderadorNome}
                             </span>
@@ -418,7 +420,7 @@ export default function DenunciasPage() {
                               iniciarAnalise(denuncia);
                               setDenunciaSelecionada(denuncia);
                             }}
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
                           >
                             <Eye size={16} />
                             Analisar
@@ -427,7 +429,7 @@ export default function DenunciasPage() {
                         {denuncia.status === 'analisando' && (
                           <button
                             onClick={() => setDenunciaSelecionada(denuncia)}
-                            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors"
                           >
                             <MessageSquare size={16} />
                             Continuar
@@ -436,7 +438,7 @@ export default function DenunciasPage() {
                         {(denuncia.status === 'procedente' || denuncia.status === 'improcedente') && (
                           <button
                             onClick={() => setDenunciaSelecionada(denuncia)}
-                            className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
+                            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors"
                           >
                             <Eye size={16} />
                             Ver Detalhes
@@ -454,17 +456,17 @@ export default function DenunciasPage() {
 
       {/* Modal de Análise */}
       {denunciaSelecionada && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Análise de Denúncia</h2>
+                <h2 className="text-xl font-bold text-slate-800">Análise de Denúncia</h2>
                 <button
                   onClick={() => {
                     setDenunciaSelecionada(null);
                     setObservacao('');
                   }}
-                  className="text-slate-400 hover:text-white"
+                  className="text-slate-400 hover:text-slate-600"
                 >
                   <XCircle size={24} />
                 </button>
@@ -472,7 +474,7 @@ export default function DenunciasPage() {
 
               {/* Informações da Denúncia */}
               <div className="space-y-4 mb-6">
-                <div className="bg-slate-800 rounded-lg p-4">
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${getTipoColor(denunciaSelecionada.tipo)}`}>
                       {getTipoLabel(denunciaSelecionada.tipo)}
@@ -483,24 +485,24 @@ export default function DenunciasPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-2">
                     Campanha: {denunciaSelecionada.campanhaTitulo}
                   </h3>
 
                   <div className="mb-4">
-                    <span className="text-sm text-slate-400">Descrição da denúncia:</span>
-                    <p className="text-slate-300 mt-1">{denunciaSelecionada.descricao}</p>
+                    <span className="text-sm text-slate-500">Descrição da denúncia:</span>
+                    <p className="text-slate-700 mt-1">{denunciaSelecionada.descricao}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-slate-400">Denunciante:</span>
-                      <p className="text-white">{denunciaSelecionada.denuncianteNome}</p>
-                      <p className="text-slate-500 text-xs">{denunciaSelecionada.denuncianteEmail}</p>
+                      <span className="text-slate-500">Denunciante:</span>
+                      <p className="text-slate-800">{denunciaSelecionada.denuncianteNome}</p>
+                      <p className="text-slate-400 text-xs">{denunciaSelecionada.denuncianteEmail}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Data:</span>
-                      <p className="text-white">
+                      <span className="text-slate-500">Data:</span>
+                      <p className="text-slate-800">
                         {new Date(denunciaSelecionada.dataDenuncia).toLocaleDateString('pt-BR')} às{' '}
                         {new Date(denunciaSelecionada.dataDenuncia).toLocaleTimeString('pt-BR', {
                           hour: '2-digit',
@@ -513,14 +515,14 @@ export default function DenunciasPage() {
 
                 {/* Observação do Moderador (para casos já analisados) */}
                 {denunciaSelecionada.observacaoModerador && (
-                  <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-800">
+                  <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
                     <div className="flex items-center gap-2 mb-2">
-                      <ShieldCheck size={16} className="text-purple-400" />
-                      <span className="text-sm text-purple-400 font-medium">
+                      <ShieldCheck size={16} className="text-emerald-600" />
+                      <span className="text-sm text-emerald-700 font-medium">
                         Análise de {denunciaSelecionada.moderadorNome}
                       </span>
                     </div>
-                    <p className="text-slate-300">{denunciaSelecionada.observacaoModerador}</p>
+                    <p className="text-slate-700">{denunciaSelecionada.observacaoModerador}</p>
                     {denunciaSelecionada.dataAnalise && (
                       <p className="text-xs text-slate-500 mt-2">
                         Analisado em: {new Date(denunciaSelecionada.dataAnalise).toLocaleDateString('pt-BR')}
@@ -532,14 +534,14 @@ export default function DenunciasPage() {
                 {/* Campo de Observação (para análise) */}
                 {(denunciaSelecionada.status === 'pendente' || denunciaSelecionada.status === 'analisando') && (
                   <div>
-                    <label className="block text-sm text-slate-400 mb-2">
+                    <label className="block text-sm text-slate-600 mb-2">
                       Observação do Moderador *
                     </label>
                     <textarea
                       value={observacao}
                       onChange={(e) => setObservacao(e.target.value)}
                       rows={4}
-                      className="w-full bg-slate-800 text-white rounded-lg p-3 border border-slate-700 focus:border-purple-500 focus:outline-none resize-none"
+                      className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none resize-none"
                       placeholder="Descreva sua análise e conclusão sobre esta denúncia..."
                     />
                   </div>
@@ -551,14 +553,14 @@ export default function DenunciasPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => finalizarAnalise(denunciaSelecionada.id, false)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg font-medium transition-colors"
                   >
                     <CheckCircle size={20} />
                     Marcar como Improcedente
                   </button>
                   <button
                     onClick={() => finalizarAnalise(denunciaSelecionada.id, true)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium transition-colors"
                   >
                     <Ban size={20} />
                     Marcar como Procedente
@@ -572,7 +574,7 @@ export default function DenunciasPage() {
                     setDenunciaSelecionada(null);
                     setObservacao('');
                   }}
-                  className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg font-medium transition-colors"
+                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg font-medium transition-colors"
                 >
                   Fechar
                 </button>

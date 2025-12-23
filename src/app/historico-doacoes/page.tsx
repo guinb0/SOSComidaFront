@@ -99,155 +99,290 @@ export default function HistoricoDoacoesPage() {
     const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: 'long',
-      year: 'numeric',
+      year: 'numeric'
+    }).format(dataDoacao);
+
+    const horaFormatada = new Intl.DateTimeFormat('pt-BR', {
       hour: '2-digit',
       minute: '2-digit'
     }).format(dataDoacao);
 
+    const codigoAutenticacao = `SOC-${doacao.id.toString().padStart(8, '0')}-${dataDoacao.getFullYear()}`;
+
     const docDefinition: any = {
       pageSize: 'A4',
       pageOrientation: 'landscape',
-      pageMargins: [40, 60, 40, 60],
+      pageMargins: [0, 0, 0, 0],
+      background: function() {
+        return {
+          canvas: [
+            // Fundo gradiente sutil
+            {
+              type: 'rect',
+              x: 0, y: 0,
+              w: 842, h: 595,
+              color: '#fafbfc'
+            },
+            // Borda externa dourada
+            {
+              type: 'rect',
+              x: 15, y: 15,
+              w: 812, h: 565,
+              lineWidth: 3,
+              lineColor: '#b8860b'
+            },
+            // Borda interna dupla
+            {
+              type: 'rect',
+              x: 25, y: 25,
+              w: 792, h: 545,
+              lineWidth: 1,
+              lineColor: '#d4af37'
+            },
+            {
+              type: 'rect',
+              x: 30, y: 30,
+              w: 782, h: 535,
+              lineWidth: 0.5,
+              lineColor: '#e8d48b'
+            },
+            // Cantos decorativos superior esquerdo
+            {
+              type: 'line',
+              x1: 35, y1: 55,
+              x2: 35, y2: 35,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            {
+              type: 'line',
+              x1: 35, y1: 35,
+              x2: 55, y2: 35,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            // Cantos decorativos superior direito
+            {
+              type: 'line',
+              x1: 807, y1: 55,
+              x2: 807, y2: 35,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            {
+              type: 'line',
+              x1: 807, y1: 35,
+              x2: 787, y2: 35,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            // Cantos decorativos inferior esquerdo
+            {
+              type: 'line',
+              x1: 35, y1: 540,
+              x2: 35, y2: 560,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            {
+              type: 'line',
+              x1: 35, y1: 560,
+              x2: 55, y2: 560,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            // Cantos decorativos inferior direito
+            {
+              type: 'line',
+              x1: 807, y1: 540,
+              x2: 807, y2: 560,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            {
+              type: 'line',
+              x1: 807, y1: 560,
+              x2: 787, y2: 560,
+              lineWidth: 2,
+              lineColor: '#b8860b'
+            },
+            // Linha decorativa horizontal superior
+            {
+              type: 'line',
+              x1: 100, y1: 100,
+              x2: 742, y2: 100,
+              lineWidth: 0.5,
+              lineColor: '#d4af37'
+            },
+            // Linha decorativa horizontal inferior
+            {
+              type: 'line',
+              x1: 100, y1: 495,
+              x2: 742, y2: 495,
+              lineWidth: 0.5,
+              lineColor: '#d4af37'
+            }
+          ]
+        };
+      },
       content: [
-        // Logo centralizada
-        {
-          image: LOGO_BASE64,
-          width: 80,
-          alignment: 'center',
-          margin: [0, 0, 0, 15]
-        },
-        { text: 'CERTIFICADO DE DOAÇÃO', fontSize: 28, bold: true, alignment: 'center', margin: [0, 0, 0, 25], color: '#10b981' },
-        { text: '\n' },
-        {
-          text: [
-            'Certificamos que ',
-            { text: user?.nome || 'Doador', bold: true, color: '#10b981' },
-            ', realizou uma doação no valor de '
-          ],
-          fontSize: 14,
-          alignment: 'center',
-          margin: [0, 0, 0, 20]
-        },
-        {
-          text: `R$ ${doacao.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-          fontSize: 32,
-          bold: true,
-          alignment: 'center',
-          color: '#10b981',
-          margin: [0, 0, 0, 20]
-        },
-        {
-          text: [
-            'para a campanha ',
-            { text: `"${doacao.campanhaTitulo}"`, bold: true, color: '#3b82f6' },
-            ', através da plataforma SOS Comida.'
-          ],
-          fontSize: 14,
-          alignment: 'center',
-          margin: [0, 0, 0, 30]
-        },
-        {
-          text: `Método de Pagamento: ${doacao.metodoPagamento}`,
-          fontSize: 11,
-          alignment: 'center',
-          color: '#64748b',
-          margin: [0, 0, 0, 5]
-        },
-        {
-          text: `Data da Doação: ${dataFormatada}`,
-          fontSize: 11,
-          alignment: 'center',
-          color: '#64748b',
-          margin: [0, 0, 0, 5]
-        },
-        {
-          text: `ID da Transação: #${doacao.id.toString().padStart(8, '0')}`,
-          fontSize: 11,
-          alignment: 'center',
-          color: '#64748b',
-          margin: [0, 0, 0, 40]
-        },
-        {
-          text: 'Agradecemos sua generosidade e compromisso em fazer a diferença!',
-          fontSize: 13,
-          italics: true,
-          alignment: 'center',
-          color: '#475569',
-          margin: [0, 0, 0, 50]
-        },
-        // Assinatura
+        // Cabeçalho com logo
         {
           columns: [
             { width: '*', text: '' },
             {
-              width: 200,
+              width: 'auto',
               stack: [
-                // Simulação de assinatura cursiva
                 {
-                  canvas: [
-                    // Linha da assinatura (simulando escrita cursiva)
-                    {
-                      type: 'polyline',
-                      lineWidth: 2,
-                      closePath: false,
-                      points: [
-                        { x: 20, y: 10 },
-                        { x: 30, y: 5 },
-                        { x: 40, y: 15 },
-                        { x: 50, y: 8 },
-                        { x: 60, y: 12 },
-                        { x: 70, y: 6 },
-                        { x: 85, y: 10 },
-                        { x: 95, y: 8 },
-                        { x: 110, y: 12 },
-                        { x: 125, y: 10 },
-                        { x: 140, y: 15 },
-                        { x: 155, y: 8 },
-                        { x: 170, y: 12 },
-                        { x: 180, y: 10 }
-                      ],
-                      color: '#1e40af'
-                    }
-                  ],
-                  margin: [0, 0, 0, 10]
-                },
-                {
-                  text: '_________________________________',
-                  alignment: 'center',
-                  margin: [0, 0, 0, 5]
-                },
-                {
-                  text: 'Maria Silva Santos',
-                  alignment: 'center',
-                  fontSize: 11,
-                  bold: true,
-                  color: '#1e293b'
-                },
-                {
-                  text: 'Diretora Executiva',
-                  alignment: 'center',
-                  fontSize: 10,
-                  color: '#64748b',
-                  margin: [0, 2, 0, 0]
-                },
-                {
-                  text: 'SOS Comida',
-                  alignment: 'center',
-                  fontSize: 10,
-                  color: '#64748b'
-                },
-                {
-                  text: 'Plataforma de Doações',
-                  alignment: 'center',
-                  fontSize: 8,
-                  color: '#94a3b8'
+                  image: LOGO_BASE64,
+                  width: 70,
+                  alignment: 'center'
                 }
               ]
             },
             { width: '*', text: '' }
-          ]
+          ],
+          margin: [0, 45, 0, 10]
+        },
+        // Título principal
+        {
+          text: 'CERTIFICADO DE DOAÇÃO',
+          fontSize: 32,
+          bold: true,
+          alignment: 'center',
+          color: '#1a365d',
+          margin: [0, 5, 0, 5],
+          characterSpacing: 4
+        },
+        // Subtítulo
+        {
+          text: 'SOLIDARIEDADE EM AÇÃO',
+          fontSize: 11,
+          alignment: 'center',
+          color: '#b8860b',
+          margin: [0, 0, 0, 25],
+          characterSpacing: 6
+        },
+        // Texto principal
+        {
+          text: 'A Plataforma SOS Comida certifica que',
+          fontSize: 12,
+          alignment: 'center',
+          color: '#4a5568',
+          margin: [60, 0, 60, 15]
+        },
+        // Nome do doador
+        {
+          text: user?.nome || 'Doador Anônimo',
+          fontSize: 26,
+          bold: true,
+          alignment: 'center',
+          color: '#1a365d',
+          margin: [60, 0, 60, 15]
+        },
+        // Texto de contribuição
+        {
+          text: 'realizou uma contribuição solidária no valor de',
+          fontSize: 12,
+          alignment: 'center',
+          color: '#4a5568',
+          margin: [60, 0, 60, 10]
+        },
+        // Valor da doação com destaque - centralizado
+        {
+          text: `R$ ${doacao.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+          fontSize: 28,
+          bold: true,
+          color: '#10b981',
+          alignment: 'center',
+          margin: [0, 5, 0, 15]
+        },
+        // Detalhes da campanha
+        {
+          text: [
+            { text: 'destinada à campanha ', color: '#4a5568' },
+            { text: `"${doacao.campanhaTitulo}"`, bold: true, color: '#2563eb' }
+          ],
+          fontSize: 12,
+          alignment: 'center',
+          margin: [60, 0, 60, 25]
+        },
+        // Informações adicionais em colunas
+        {
+          columns: [
+            { width: '*', text: '' },
+            {
+              width: 'auto',
+              table: {
+                widths: ['auto', 'auto'],
+                body: [
+                  [
+                    { text: 'Data:', fontSize: 9, color: '#718096', alignment: 'right', margin: [0, 2, 10, 2] },
+                    { text: dataFormatada, fontSize: 9, color: '#2d3748', bold: true, alignment: 'left', margin: [0, 2, 0, 2] }
+                  ],
+                  [
+                    { text: 'Horário:', fontSize: 9, color: '#718096', alignment: 'right', margin: [0, 2, 10, 2] },
+                    { text: horaFormatada, fontSize: 9, color: '#2d3748', bold: true, alignment: 'left', margin: [0, 2, 0, 2] }
+                  ],
+                  [
+                    { text: 'Método:', fontSize: 9, color: '#718096', alignment: 'right', margin: [0, 2, 10, 2] },
+                    { text: doacao.metodoPagamento, fontSize: 9, color: '#2d3748', bold: true, alignment: 'left', margin: [0, 2, 0, 2] }
+                  ]
+                ]
+              },
+              layout: 'noBorders'
+            },
+            { width: '*', text: '' }
+          ],
+          margin: [0, 0, 0, 20]
+        },
+        // Mensagem de agradecimento
+        {
+          text: '"Sua generosidade transforma vidas e alimenta a esperança de muitas famílias."',
+          fontSize: 11,
+          italics: true,
+          alignment: 'center',
+          color: '#718096',
+          margin: [80, 0, 80, 30]
+        },
+        // Assinatura centralizada
+        {
+          text: '____________________________________',
+          alignment: 'center',
+          fontSize: 10,
+          color: '#cbd5e0',
+          margin: [0, 0, 0, 5]
+        },
+        {
+          text: 'Maria Silva Santos',
+          alignment: 'center',
+          fontSize: 11,
+          bold: true,
+          color: '#1a365d'
+        },
+        {
+          text: 'Diretora Executiva - SOS Comida',
+          alignment: 'center',
+          fontSize: 9,
+          color: '#718096',
+          margin: [0, 2, 0, 20]
+        },
+        // Código de autenticação
+        {
+          text: `Código de Autenticação: ${codigoAutenticacao}`,
+          alignment: 'center',
+          fontSize: 8,
+          color: '#2d3748',
+          bold: true
         }
-      ]
+      ],
+      footer: {
+        text: `Emitido em ${new Date().toLocaleDateString('pt-BR')} • Este documento é válido como comprovante de doação • www.soscomida.org.br`,
+        fontSize: 7,
+        color: '#a0aec0',
+        alignment: 'center',
+        margin: [0, 0, 0, 25]
+      }
     };
 
     pdfMake.createPdf(docDefinition).download(`Certificado-Doacao-${doacao.id}.pdf`);
